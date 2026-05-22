@@ -55,6 +55,8 @@ app.add_middleware(
 
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/bmp", "image/webp"}
 MAX_SIZE_MB = 10
+MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
+UPLOAD_CHUNK_SIZE = 1024 * 1024
 
 
 def decode_image(data: bytes) -> np.ndarray:
@@ -62,6 +64,16 @@ def decode_image(data: bytes) -> np.ndarray:
     pil = Image.open(io.BytesIO(data)).convert("RGB")
     bgr = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR)
     return bgr
+
+
+async def read_limited_upload(file: UploadFile) -> bytes:
+    """Read an upload while enforcing the configured byte limit."""
+    data = bytearray()
+    while chunk := await file.read(UPLOAD_CHUNK_SIZE):
+        if len(data) + len(chunk) > MAX_SIZE_BYTES:
+            raise HTTPException(status_code=400, detail=f"File too large (max {MAX_SIZE_MB} MB).")
+        data.extend(chunk)
+    return bytes(data)
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -102,9 +114,7 @@ async def analyze(file: UploadFile = File(...)):
             detail=f"Unsupported file type '{file.content_type}'. Use JPEG, PNG, or BMP."
         )
 
-    raw = await file.read()
-    if len(raw) > MAX_SIZE_MB * 1024 * 1024:
-        raise HTTPException(status_code=400, detail=f"File too large (max {MAX_SIZE_MB} MB).")
+    raw = await read_limited_upload(file)
 
     try:
         t0 = time.perf_counter()
