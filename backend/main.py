@@ -7,8 +7,8 @@ Endpoints:
 """
 
 import io
+import logging
 import time
-import traceback
 from contextlib import asynccontextmanager
 
 import cv2
@@ -19,6 +19,8 @@ from PIL import Image, UnidentifiedImageError
 
 from features import extract_features
 from inference import load_model, predict
+
+logger = logging.getLogger(__name__)
 
 
 # ── Lifespan: pre-load model on startup ───────────────────────────────────────
@@ -147,8 +149,9 @@ async def analyze(file: UploadFile = File(...)):
         raise HTTPException(status_code=503, detail=str(e))
     except InvalidImageError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception:
+    except Exception as e:
+        logger.exception("Feature extraction or inference failed")
         raise HTTPException(
             status_code=500,
-            detail="Feature extraction or inference failed. " + traceback.format_exc()
-        )
+            detail="Feature extraction or inference failed."
+        ) from e
