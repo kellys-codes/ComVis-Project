@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from features import extract_features
 from inference import load_model, predict
@@ -53,16 +53,29 @@ app.add_middleware(
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/bmp", "image/webp"}
+ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "BMP", "WEBP"}
 MAX_SIZE_MB = 10
 MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
 UPLOAD_CHUNK_SIZE = 1024 * 1024
 
 
+class InvalidImageError(ValueError):
+    """Raised when uploaded bytes are not a supported image."""
+
+
 def decode_image(data: bytes) -> np.ndarray:
     """Decode uploaded bytes → BGR ndarray."""
-    pil = Image.open(io.BytesIO(data)).convert("RGB")
-    bgr = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR)
+    try:
+        with Image.open(io.BytesIO(data)) as pil:
+            if pil.format not in ALLOWED_IMAGE_FORMATS:
+                raise InvalidImageError("Unsupported image format. Use JPEG, PNG, BMP, or WEBP.")
+            rgb = pil.convert("RGB")
+    except InvalidImageError:
+        raise
+    except (Image.DecompressionBombError, OSError, UnidentifiedImageError) as exc:
+        raise InvalidImageError("Invalid image data. Upload a valid image file.") from exc
+
+    bgr = cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2BGR)
     return bgr
 
 
@@ -107,13 +120,6 @@ async def analyze(file: UploadFile = File(...)):
       5. ONNX Random Forest inference
       6. Return label, probabilities, plain-language explanation
     """
-    # Validate
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type '{file.content_type}'. Use JPEG, PNG, or BMP."
-        )
-
     raw = await read_limited_upload(file)
 
     try:
@@ -139,6 +145,8 @@ async def analyze(file: UploadFile = File(...)):
 
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=str(e))
+    except InvalidImageError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception:
         raise HTTPException(
             status_code=500,
