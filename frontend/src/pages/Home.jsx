@@ -1,5 +1,63 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import clinicalSpecimenImage from '../assets/0230MiSmacro-a836f6a3aba34ee3afef3a85de12e913-136696854.jpg'
+import isic24309Image from '../assets/ISIC_0024309.jpg'
+import isic24317Image from '../assets/ISIC_0024317.jpg'
+import isic24320Image from '../assets/ISIC_0024320.jpg'
 import specimenImage from '../assets/specimen.png'
+
+const SPECIMENS = [
+  {
+    id: '0042',
+    image: specimenImage,
+    objectPosition: 'center',
+    results: [
+      { label: 'Common', value: 76 },
+      { label: 'Atypical', value: 19 },
+      { label: 'Melanoma', value: 5 },
+    ],
+  },
+  {
+    id: '24309',
+    image: isic24309Image,
+    objectPosition: 'center',
+    results: [
+      { label: 'Common', value: 21 },
+      { label: 'Atypical', value: 62 },
+      { label: 'Melanoma', value: 17 },
+    ],
+  },
+  {
+    id: '24317',
+    image: isic24317Image,
+    objectPosition: 'center',
+    results: [
+      { label: 'Common', value: 58 },
+      { label: 'Atypical', value: 31 },
+      { label: 'Melanoma', value: 11 },
+    ],
+  },
+  {
+    id: '24320',
+    image: isic24320Image,
+    objectPosition: 'center',
+    results: [
+      { label: 'Common', value: 15 },
+      { label: 'Atypical', value: 27 },
+      { label: 'Melanoma', value: 58 },
+    ],
+  },
+  {
+    id: '0230',
+    image: clinicalSpecimenImage,
+    objectPosition: 'center',
+    results: [
+      { label: 'Common', value: 8 },
+      { label: 'Atypical', value: 18 },
+      { label: 'Melanoma', value: 74 },
+    ],
+  },
+]
 
 const FEATURES = [
   {
@@ -27,6 +85,20 @@ const STEPS = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const [specimenIndex, setSpecimenIndex] = useState(0)
+  const activeSpecimen = SPECIMENS[specimenIndex]
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined
+    }
+
+    const intervalId = window.setInterval(() => {
+      setSpecimenIndex(current => (current + 1) % SPECIMENS.length)
+    }, 4600)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
 
   return (
     <div className="page-wrap fade-up">
@@ -66,29 +138,29 @@ export default function Home() {
         <div className="hero-visual" aria-hidden="true">
           <div className="diagnostic-panel">
             <div className="diagnostic-topline">
-              <span>Specimen · 0042</span>
+              <span>Specimen · {activeSpecimen.id}</span>
               <strong>Ready</strong>
             </div>
             <div className="lesion-frame">
-              <img className="specimen-image" src={specimenImage} alt="" />
+              <img
+                key={activeSpecimen.id}
+                className="specimen-image"
+                src={activeSpecimen.image}
+                style={{ objectPosition: activeSpecimen.objectPosition }}
+                alt=""
+              />
               <div className="focus-reticle">
                 <span />
               </div>
               <div className="scan-sweep" />
             </div>
             <div className="diagnostic-bars">
-              <div>
-                <span>Common</span>
-                <i style={{ width: '76%' }} />
-              </div>
-              <div>
-                <span>Atypical</span>
-                <i style={{ width: '19%' }} />
-              </div>
-              <div>
-                <span>Melanoma</span>
-                <i style={{ width: '5%' }} />
-              </div>
+              {activeSpecimen.results.map(({ label, value }) => (
+                <div key={label}>
+                  <span>{label}<b>{value}%</b></span>
+                  <i style={{ width: `${value}%` }} />
+                </div>
+              ))}
             </div>
           </div>
         </div>

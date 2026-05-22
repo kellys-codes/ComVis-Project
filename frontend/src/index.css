@@ -2431,12 +2431,27 @@ body.dark .btn-view {
 }
 
 .specimen-image {
+  animation: specimen-slide-in 760ms cubic-bezier(.2, .78, .28, 1);
   height: 100%;
   inset: 0;
   object-fit: cover;
   position: absolute;
   width: 100%;
   z-index: 0;
+}
+
+@keyframes specimen-slide-in {
+  from {
+    filter: saturate(.92);
+    opacity: 0;
+    transform: translateX(8%) scale(1.035);
+  }
+
+  to {
+    filter: saturate(1);
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 .focus-reticle {
@@ -2492,12 +2507,20 @@ body.dark .btn-view {
 }
 
 .diagnostic-bars span {
+  align-items: center;
+  display: flex;
   font-family: var(--mono-font);
   font-size: 10px;
   font-weight: 500;
+  justify-content: space-between;
   line-height: 1.2;
   margin: 0;
   transform: none;
+}
+
+.diagnostic-bars b {
+  color: var(--teal);
+  font: inherit;
 }
 
 .diagnostic-bars i {
@@ -2507,7 +2530,18 @@ body.dark .btn-view {
   height: 3px;
   margin: 0;
   position: relative;
+  transition: width 820ms cubic-bezier(.2, .78, .28, 1);
   z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specimen-image {
+    animation: none;
+  }
+
+  .diagnostic-bars i {
+    transition: none;
+  }
 }
 
 .features-grid {
