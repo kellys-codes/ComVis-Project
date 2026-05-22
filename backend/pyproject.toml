@@ -5,12 +5,12 @@ description = "FastAPI backend for dermoscopic lesion classification with CV fea
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.103.2",
-    "numpy>=1.24.4",
+    "fastapi>=0.109.1",
+    "numpy>=1.26.0",
     "onnxruntime>=1.16.3",
     "opencv-python-headless>=4.8.1.78",
-    "pillow>=10.0.1",
-    "python-multipart>=0.0.6",
+    "pillow>=12.1.1",
+    "python-multipart>=0.0.7",
     "scikit-image>=0.21.0",
     "uvicorn[standard]>=0.23.2",
 ]
