@@ -8,6 +8,8 @@ Expected model: final_model_Random_Forest.onnx
 """
 
 from pathlib import Path
+from threading import Lock
+
 import numpy as np
 import onnxruntime as rt
 
@@ -38,19 +40,22 @@ CLASS_ACTION = {
 }
 
 _session = None
+_session_lock = Lock()
 
 def load_model() -> rt.InferenceSession:
     """Load ONNX model (cached after first call)."""
     global _session
     if _session is None:
-        if not MODEL_PATH.exists():
-            raise FileNotFoundError(
-                f"ONNX model not found at {MODEL_PATH}. "
-                "Please copy final_model_Random_Forest.onnx into backend/models/"
-            )
-        opts = rt.SessionOptions()
-        opts.intra_op_num_threads = 4
-        _session = rt.InferenceSession(str(MODEL_PATH), sess_options=opts)
+        with _session_lock:
+            if _session is None:
+                if not MODEL_PATH.exists():
+                    raise FileNotFoundError(
+                        f"ONNX model not found at {MODEL_PATH}. "
+                        "Please copy final_model_Random_Forest.onnx into backend/models/"
+                    )
+                opts = rt.SessionOptions()
+                opts.intra_op_num_threads = 4
+                _session = rt.InferenceSession(str(MODEL_PATH), sess_options=opts)
     return _session
 
 
