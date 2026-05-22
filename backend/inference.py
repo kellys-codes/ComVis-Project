@@ -80,6 +80,8 @@ def predict(features: np.ndarray) -> dict:
     )
     label = int(label_arr[0])
     probs = prob_arr[0].tolist()
+    if label not in CLASS_NAMES:
+        raise ValueError(f"Model returned unexpected label {label}; probabilities={probs}")
 
     return {
         "label":         label,
