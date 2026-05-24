@@ -13,7 +13,7 @@ from threading import Lock
 import numpy as np
 import onnxruntime as rt
 
-MODEL_PATH = Path(__file__).parent / "models" / "final_model_Random_Forest.onnx"
+MODEL_PATH = Path(__file__).parent / "model" / "final_model_Random_Forest.onnx"
 
 CLASS_NAMES = {
     0: "Common / Benign Nevi",
