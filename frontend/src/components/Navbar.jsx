@@ -13,12 +13,15 @@ export default function Navbar() {
   const navigate = useNavigate()
 
   return (
-    <nav>
-      <button className="nav-logo" onClick={() => navigate('/')}>
+    <nav aria-label="Primary navigation">
+      <button className="nav-logo" onClick={() => navigate('/')} aria-label="DermaAI home">
         <div className="logo-icon">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+          <span className="logo-core" />
         </div>
-        <span className="logo-text">DermaAI</span>
+        <span className="logo-copy">
+          <span className="logo-text">Derma<span>AI</span></span>
+          <span className="logo-subtitle">Dx · v1.0</span>
+        </span>
       </button>
 
       <div className="nav-links">
@@ -29,11 +32,14 @@ export default function Navbar() {
             end={to === '/'}
             className={({ isActive }) => `nav-btn${isActive ? ' active' : ''}`}
           >
-            {icon} {label}
+            {icon}
+            <span>{label}</span>
           </NavLink>
         ))}
 
-        <button className="nav-theme" onClick={toggleDark} aria-label="Toggle theme">
+        <span className="nav-divider" aria-hidden="true" />
+
+        <button className="nav-theme" onClick={toggleDark} aria-label="Toggle theme" title="Toggle theme">
           {darkMode
             ? <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
             : <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>

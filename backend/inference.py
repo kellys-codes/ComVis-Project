@@ -8,10 +8,12 @@ Expected model: final_model_Random_Forest.onnx
 """
 
 from pathlib import Path
+from threading import Lock
+
 import numpy as np
 import onnxruntime as rt
 
-MODEL_PATH = Path(__file__).parent / "models" / "final_model_Random_Forest.onnx"
+MODEL_PATH = Path(__file__).parent / "model" / "final_model_Random_Forest.onnx"
 
 CLASS_NAMES = {
     0: "Common / Benign Nevi",
@@ -38,19 +40,22 @@ CLASS_ACTION = {
 }
 
 _session = None
+_session_lock = Lock()
 
 def load_model() -> rt.InferenceSession:
     """Load ONNX model (cached after first call)."""
     global _session
     if _session is None:
-        if not MODEL_PATH.exists():
-            raise FileNotFoundError(
-                f"ONNX model not found at {MODEL_PATH}. "
-                "Please copy final_model_Random_Forest.onnx into backend/models/"
-            )
-        opts = rt.SessionOptions()
-        opts.intra_op_num_threads = 4
-        _session = rt.InferenceSession(str(MODEL_PATH), sess_options=opts)
+        with _session_lock:
+            if _session is None:
+                if not MODEL_PATH.exists():
+                    raise FileNotFoundError(
+                        f"ONNX model not found at {MODEL_PATH}. "
+                        "Please copy final_model_Random_Forest.onnx into backend/models/"
+                    )
+                opts = rt.SessionOptions()
+                opts.intra_op_num_threads = 4
+                _session = rt.InferenceSession(str(MODEL_PATH), sess_options=opts)
     return _session
 
 
@@ -80,6 +85,8 @@ def predict(features: np.ndarray) -> dict:
     )
     label = int(label_arr[0])
     probs = prob_arr[0].tolist()
+    if label not in CLASS_NAMES:
+        raise ValueError(f"Model returned unexpected label {label}; probabilities={probs}")
 
     return {
         "label":         label,

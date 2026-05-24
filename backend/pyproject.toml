@@ -1,0 +1,16 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI backend for dermoscopic lesion classification with CV features and ONNX inference"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi~=0.136.1",
+    "numpy>=2.4,<3.0",
+    "onnxruntime~=1.26.0",
+    "opencv-python-headless~=4.13.0.92",
+    "pillow~=12.2.0",
+    "python-multipart~=0.0.29",
+    "scikit-image~=0.26.0",
+    "uvicorn[standard]>=0.47,<0.48",
+]

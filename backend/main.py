@@ -7,18 +7,20 @@ Endpoints:
 """
 
 import io
+import logging
 import time
-import traceback
 from contextlib import asynccontextmanager
 
 import cv2
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from features import extract_features
 from inference import load_model, predict
+
+logger = logging.getLogger(__name__)
 
 
 # ── Lifespan: pre-load model on startup ───────────────────────────────────────
@@ -53,15 +55,40 @@ app.add_middleware(
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/bmp", "image/webp"}
+ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "BMP", "WEBP"}
 MAX_SIZE_MB = 10
+MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
+UPLOAD_CHUNK_SIZE = 1024 * 1024
+
+
+class InvalidImageError(ValueError):
+    """Raised when uploaded bytes are not a supported image."""
 
 
 def decode_image(data: bytes) -> np.ndarray:
     """Decode uploaded bytes → BGR ndarray."""
-    pil = Image.open(io.BytesIO(data)).convert("RGB")
-    bgr = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR)
+    try:
+        with Image.open(io.BytesIO(data)) as pil:
+            if pil.format not in ALLOWED_IMAGE_FORMATS:
+                raise InvalidImageError("Unsupported image format. Use JPEG, PNG, BMP, or WEBP.")
+            rgb = pil.convert("RGB")
+    except InvalidImageError:
+        raise
+    except (Image.DecompressionBombError, OSError, UnidentifiedImageError) as exc:
+        raise InvalidImageError("Invalid image data. Upload a valid image file.") from exc
+
+    bgr = cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2BGR)
     return bgr
+
+
+async def read_limited_upload(file: UploadFile) -> bytes:
+    """Read an upload while enforcing the configured byte limit."""
+    data = bytearray()
+    while chunk := await file.read(UPLOAD_CHUNK_SIZE):
+        if len(data) + len(chunk) > MAX_SIZE_BYTES:
+            raise HTTPException(status_code=400, detail=f"File too large (max {MAX_SIZE_MB} MB).")
+        data.extend(chunk)
+    return bytes(data)
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -95,16 +122,7 @@ async def analyze(file: UploadFile = File(...)):
       5. ONNX Random Forest inference
       6. Return label, probabilities, plain-language explanation
     """
-    # Validate
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type '{file.content_type}'. Use JPEG, PNG, or BMP."
-        )
-
-    raw = await file.read()
-    if len(raw) > MAX_SIZE_MB * 1024 * 1024:
-        raise HTTPException(status_code=400, detail=f"File too large (max {MAX_SIZE_MB} MB).")
+    raw = await read_limited_upload(file)
 
     try:
         t0 = time.perf_counter()
@@ -129,8 +147,11 @@ async def analyze(file: UploadFile = File(...)):
 
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=str(e))
-    except Exception:
+    except InvalidImageError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.exception("Feature extraction or inference failed")
         raise HTTPException(
             status_code=500,
-            detail="Feature extraction or inference failed. " + traceback.format_exc()
-        )
+            detail="Feature extraction or inference failed."
+        ) from e

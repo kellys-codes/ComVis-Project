@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
-const RISK_COLOR = { healthy: '#22c55e', watch: '#f59e0b', danger: '#ef4444' }
+const RISK_COLOR = { healthy: 'var(--teal)', watch: '#f59e0b', danger: '#dc2626' }
 const RISK_LABEL = { healthy: 'Healthy', watch: 'Review', danger: 'Urgent' }
 const CLASS_SHORT = ['Common', 'Atypical', 'Melanoma']
+const CLASS_COLORS = ['#1f6196', '#75a9d2', '#f59e0b']
 
 export default function History() {
   const navigate = useNavigate()
@@ -17,8 +18,17 @@ export default function History() {
   return (
     <div className="page-wrap fade-up">
       <div className="history-wrap">
-        <h1>Scan History</h1>
-        <p>View and manage your previous skin analysis results</p>
+        <header className="page-head history-head">
+          <div>
+            <p className="eyebrow">Session archive</p>
+            <h1>Scan History</h1>
+            <p>View and manage your previous skin analysis results</p>
+          </div>
+          <div className="history-count">
+            <strong>{scanHistory.length}</strong>
+            <span>saved scans</span>
+          </div>
+        </header>
 
         {scanHistory.length === 0 ? (
           <div className="empty-state">
@@ -41,7 +51,7 @@ export default function History() {
             <div className="history-grid">
               {scanHistory.map((scan, i) => {
                 const pcts = scan.probabilities.map(p => Math.round(p * 100))
-                const rc = RISK_COLOR[scan.risk] || '#22c55e'
+                const rc = RISK_COLOR[scan.risk] || 'var(--teal)'
                 const rl = RISK_LABEL[scan.risk] || 'Healthy'
                 const d = scan.date ? new Date(scan.date) : null
 
@@ -70,8 +80,13 @@ export default function History() {
                       </div>
                       {CLASS_SHORT.map((name, ci) => (
                         <div className="history-stat" key={ci}>
-                          <span>{name}</span>
-                          <span>{pcts[ci]}%</span>
+                          <div className="history-stat-label">
+                            <span>{name}</span>
+                            <span>{pcts[ci]}%</span>
+                          </div>
+                          <div className="history-stat-bar">
+                            <i style={{ width: `${pcts[ci]}%`, background: CLASS_COLORS[ci] }} />
+                          </div>
                         </div>
                       ))}
                       <div className="history-card-actions">

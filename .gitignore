@@ -6,6 +6,7 @@ frontend/dist/
 backend/__pycache__/
 backend/*.pyc
 backend/models/*.onnx
+backend/.venv/
 
 # General
 .DS_Store

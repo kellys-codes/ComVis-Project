@@ -19,7 +19,6 @@ export default function App() {
           <Route path="/history"  element={<History />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
-        <button className="fab" title="Help">?</button>
       </BrowserRouter>
     </AppProvider>
   )

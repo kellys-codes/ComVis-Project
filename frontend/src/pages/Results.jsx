@@ -3,31 +3,31 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 const CLASS_NAMES = ['Common/Benign Nevi', 'Atypical/Other Benign', 'Melanoma']
-const CLASS_COLORS = ['#22c55e', '#f59e0b', '#ef4444']
+const CLASS_COLORS = ['#1f6196', '#75a9d2', '#f59e0b']
 
 const GATE_CONFIG = {
   healthy: {
-    bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a', iconStroke: '#22c55e',
+    bg: 'rgba(31, 97, 150, .06)', border: 'rgba(31, 97, 150, .28)', text: 'var(--teal)', iconStroke: 'var(--teal)',
     label: 'PASSED', msg: 'No immediate concerns detected. Regular self-monitoring recommended.',
     icon: 'check',
   },
   watch: {
-    bg: '#fff7ed', border: '#fed7aa', text: '#c2410c', iconStroke: '#f97316',
+    bg: 'rgba(245, 158, 11, .08)', border: 'rgba(245, 158, 11, .32)', text: '#a16207', iconStroke: '#f59e0b',
     label: 'REVIEW', msg: 'Some atypical features detected. Professional evaluation recommended.',
     icon: 'warn',
   },
   danger: {
-    bg: '#fef2f2', border: '#fecaca', text: '#b91c1c', iconStroke: '#ef4444',
+    bg: 'rgba(220, 38, 38, .07)', border: 'rgba(220, 38, 38, .3)', text: '#b91c1c', iconStroke: '#dc2626',
     label: 'FAILED', msg: 'Concerning features detected. Please consult a doctor urgently.',
     icon: 'alert',
   },
 }
 
-const BORDER_COLORS = { healthy: '#22c55e', watch: '#f59e0b', danger: '#ef4444' }
+const BORDER_COLORS = { healthy: 'var(--teal)', watch: '#f59e0b', danger: '#dc2626' }
 const ACTION_STYLES = {
-  healthy: { bg: '#f0fdf4', color: '#16a34a' },
-  watch:   { bg: '#fff7ed', color: '#c2410c' },
-  danger:  { bg: '#fef2f2', color: '#b91c1c' },
+  healthy: { bg: 'rgba(31, 97, 150, .08)', color: 'var(--teal)' },
+  watch:   { bg: 'rgba(245, 158, 11, .1)', color: '#a16207' },
+  danger:  { bg: 'rgba(220, 38, 38, .09)', color: '#b91c1c' },
 }
 
 function GateIcon({ type, stroke }) {
@@ -82,7 +82,10 @@ export default function Results() {
     const ctx = canvas.getContext('2d')
     ctx.scale(dpr, dpr)
     const W = container.offsetWidth, H = container.offsetHeight
-    const labelW = 180, padR = 50, padT = 16, padB = 32
+    const compact = W < 540
+    const labelW = compact ? 122 : 180
+    const padR = compact ? 38 : 50
+    const padT = 16, padB = 32
     const chartW = W - labelW - padR, chartH = H - padT - padB
     const isDark = document.body.classList.contains('dark')
     const gridColor = isDark ? '#334155' : '#e5e7eb'
@@ -94,7 +97,7 @@ export default function Results() {
       ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + chartH)
       ctx.strokeStyle = gridColor; ctx.setLineDash([3, 4]); ctx.lineWidth = 1; ctx.stroke()
       ctx.setLineDash([])
-      ctx.fillStyle = textColor; ctx.font = '12px Inter,sans-serif'; ctx.textAlign = 'center'
+      ctx.fillStyle = textColor; ctx.font = '12px "JetBrains Mono",monospace'; ctx.textAlign = 'center'
       ctx.fillText(v + '%', x, H - 8)
     })
     const barH = Math.min(44, (chartH - 16 * 2) / 3)
@@ -103,7 +106,7 @@ export default function Results() {
     CLASS_NAMES.forEach((lbl, i) => {
       const y = startY + i * (barH + 16)
       const bw = (pcts[i] / 100) * chartW
-      ctx.fillStyle = textColor; ctx.font = '13px Inter,sans-serif'; ctx.textAlign = 'right'
+      ctx.fillStyle = textColor; ctx.font = `${compact ? 11 : 13}px Inter,sans-serif`; ctx.textAlign = 'right'
       ctx.fillText(lbl, labelW - 12, y + barH / 2 + 4)
       ctx.fillStyle = isDark ? '#334155' : '#f3f4f6'
       ctx.beginPath(); ctx.roundRect(labelW, y, chartW, barH, 6); ctx.fill()
@@ -111,7 +114,7 @@ export default function Results() {
         ctx.fillStyle = CLASS_COLORS[i]
         ctx.beginPath(); ctx.roundRect(labelW, y, bw, barH, 6); ctx.fill()
       }
-      ctx.fillStyle = labelColor; ctx.font = 'bold 13px Inter,sans-serif'; ctx.textAlign = 'left'
+      ctx.fillStyle = labelColor; ctx.font = `500 ${compact ? 11 : 13}px "JetBrains Mono",monospace`; ctx.textAlign = 'left'
       ctx.fillText(pcts[i] + '%', labelW + bw + 8, y + barH / 2 + 4)
     })
   }
@@ -125,6 +128,7 @@ export default function Results() {
         </button>
 
         <div className="results-header">
+          <p className="eyebrow">Model readout</p>
           <h1>Analysis Results</h1>
           <p>
             Scan completed on {date ? new Date(date).toLocaleString() : '—'}

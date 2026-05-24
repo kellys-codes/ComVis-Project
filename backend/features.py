@@ -125,7 +125,8 @@ def feat_abcd(mask: np.ndarray, hsv: np.ndarray) -> np.ndarray:
     else:
         asym = 1.0
     comp = (4 * np.pi * area) / (perim ** 2)
-    cvar = float(hsv[:, :, 0][mask > 0].std())
+    hue_pixels = hsv[:, :, 0][mask > 0]
+    cvar = float(hue_pixels.std()) if hue_pixels.size else 0.0
     diam = np.sqrt(4 * area / np.pi)
     elong = perim / (2 * np.sqrt(np.pi * area) + 1e-6)
     return np.array([asym, comp, cvar, diam, elong], dtype=np.float32)

@@ -6,8 +6,13 @@ export default function Settings() {
   return (
     <div className="page-wrap fade-up">
       <div className="settings-wrap">
-        <h1>Settings</h1>
-        <p>Customize your DermaAI experience</p>
+        <header className="page-head settings-head">
+          <div>
+            <p className="eyebrow">Workspace controls</p>
+            <h1>Settings</h1>
+            <p>Customize your DermaAI experience</p>
+          </div>
+        </header>
 
         {/* Appearance */}
         <div className="settings-card">
