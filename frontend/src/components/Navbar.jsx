@@ -20,7 +20,6 @@ export default function Navbar() {
         </div>
         <span className="logo-copy">
           <span className="logo-text">Derma<span>AI</span></span>
-          <span className="logo-subtitle">Dx · v1.0</span>
         </span>
       </button>
 

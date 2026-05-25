@@ -104,12 +104,6 @@ export default function Home() {
     <div className="page-wrap fade-up">
       <section className="hero">
         <div className="hero-copy">
-          <p className="hero-model">
-            <span />
-            <span>Model</span>
-            <span>Random Forest</span>
-            <span>Online</span>
-          </p>
           <h1>
             Clinical-grade <span>dermoscopic</span> analysis, in seconds.
           </h1>
@@ -139,7 +133,6 @@ export default function Home() {
           <div className="diagnostic-panel">
             <div className="diagnostic-topline">
               <span>Specimen · {activeSpecimen.id}</span>
-              <strong>Ready</strong>
             </div>
             <div className="lesion-frame">
               <img
