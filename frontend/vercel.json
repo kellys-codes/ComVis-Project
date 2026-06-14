@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://jennigwen-comvis.hf.space/:path*"
+      "destination": "https://jennigwen-comvis.hf.space/api/:path*"
     }
   ]
 }
