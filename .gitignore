@@ -1,13 +1,7 @@
-# Frontend
-frontend/node_modules/
-frontend/dist/
-
-# Backend
-backend/__pycache__/
-backend/*.pyc
-backend/models/*.onnx
-backend/.venv/
-
-# General
+__pycache__/
+*.pyc
+.env
+node_modules/
+dermaai/
+*.egg-info/
 .DS_Store
-*.env
