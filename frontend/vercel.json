@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://dermaai-c4d9.onrender.com/api/:path*"
+      "destination": "https://jennigwen-comvis.hf.space/:path*"
     }
   ]
 }
